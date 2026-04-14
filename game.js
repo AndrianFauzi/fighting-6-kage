@@ -20,6 +20,17 @@ const COUNTDOWN_F    = 100;    // frames before "FIGHT!" ends
 const ROUND_END_MS   = 1800;   // ms before next round starts
 const WINS_NEEDED    = 2;      // best of 3
 
+// ─── AI CONFIG ────────────────────────────────────────────────
+// react    = frames between AI "think" ticks
+// atkProb  = probability to attack when in range (per think tick)
+// dodgeProb= probability to jump when opponent is attacking
+// jumpProb = random jump probability per think tick
+const AI_CFG = {
+  easy:   { react: 22, atkProb: 0.28, dodgeProb: 0.10, jumpProb: 0.005 },
+  medium: { react:  8, atkProb: 0.65, dodgeProb: 0.35, jumpProb: 0.013 },
+  hard:   { react:  3, atkProb: 0.92, dodgeProb: 0.62, jumpProb: 0.022 }
+};
+
 // Pre-baked star field (ratio coords, generated once)
 const STARS = Array.from({ length: 24 }, () => ({
   rx: Math.random(),
@@ -99,6 +110,13 @@ let players    = [];
 let effects    = [];
 let animTick   = 0;
 let loopRunning = false;
+
+// ─── AI STATE ─────────────────────────────────────────────────
+let gameMode      = 'pvp';    // 'pvp' | 'vs-cpu'
+let aiDifficulty  = 'medium'; // 'easy' | 'medium' | 'hard'
+let aiReactTimer  = 0;
+// Persisted decision between think ticks
+let aiLastDec = { moveDir: 0, atk: false, jump: false };
 
 // ─── PLAYER FACTORY ───────────────────────────────────────────
 function mkPlayer(char, num) {
@@ -342,6 +360,78 @@ function applyDamage(p, dmg, kbx, kby) {
     endRound();
   }
   refreshHpBar(p);
+}
+
+// ─── AI CONTROLLER ────────────────────────────────────────────
+// Called every frame before updatePlayer for the CPU player.
+// Sets keys/queueed actions the same way touch buttons do.
+function runAI(ai, human) {
+  const cfg = AI_CFG[aiDifficulty];
+
+  // Always apply the last decision (smooth movement)
+  ai.keys.left  = aiLastDec.moveDir === -1;
+  ai.keys.right = aiLastDec.moveDir ===  1;
+
+  // Fire one-shot actions that were decided last tick
+  if (aiLastDec.atk)  { ai.qAtk  = true; aiLastDec.atk  = false; }
+  if (aiLastDec.jump) { ai.qJump = true;  aiLastDec.jump = false; }
+
+  // Throttle thinking to cfg.react frames
+  aiReactTimer++;
+  if (aiReactTimer < cfg.react) return;
+  aiReactTimer = 0;
+
+  // ── Spatial analysis ────────────────────────────────────────
+  const aiCX   = ai.x + ai.w / 2;
+  const humCX  = human.x + human.w / 2;
+  const dist   = Math.abs(aiCX - humCX);
+  const gap    = dist - ai.w;       // pixel gap between hitboxes
+  const toLeft = aiCX > humCX;     // human is to the left?
+
+  // ── Movement decision ────────────────────────────────────────
+  // Target: stay just inside attack range but not overlapping
+  const idealGap = ATTACK_RANGE * 0.5;
+
+  if (ai.hurtTimer > 0) {
+    // Staggered — don't override physics, just wait
+    aiLastDec.moveDir = 0;
+  } else if (gap > idealGap + 20) {
+    // Too far: walk toward human
+    aiLastDec.moveDir = toLeft ? -1 : 1;
+  } else if (gap < 8) {
+    // Too close: step back
+    aiLastDec.moveDir = toLeft ? 1 : -1;
+  } else {
+    // In sweet-spot: occasionally shuffle to stay unpredictable
+    aiLastDec.moveDir = (Math.random() < 0.3) ? (toLeft ? -1 : 1) : 0;
+  }
+
+  // ── Attack decision ──────────────────────────────────────────
+  if (gap <= ATTACK_RANGE && ai.atkCd === 0 && ai.hurtTimer === 0) {
+    if (Math.random() < cfg.atkProb) aiLastDec.atk = true;
+  }
+
+  // ── Jump / dodge decision ────────────────────────────────────
+  if (ai.onGround) {
+    const humanAttacking = human.atkTimer > 0 && gap < ATTACK_RANGE + 35;
+
+    if (humanAttacking && Math.random() < cfg.dodgeProb) {
+      // Dodge: jump away from the attacker
+      aiLastDec.jump    = true;
+      aiLastDec.moveDir = toLeft ? 1 : -1;   // retreat while jumping
+    } else if (Math.random() < cfg.jumpProb) {
+      // Random jump for unpredictability
+      aiLastDec.jump = true;
+    }
+
+    // Anti-stuck: cornered against wall → jump away
+    const nearLeft  = ai.x < 28;
+    const nearRight = ai.x + ai.w > canvas.width - 28;
+    if ((nearLeft || nearRight) && Math.random() < 0.3) {
+      aiLastDec.jump    = true;
+      aiLastDec.moveDir = nearLeft ? 1 : -1;
+    }
+  }
 }
 
 // ─── HP BAR DOM UPDATE ────────────────────────────────────────
@@ -933,6 +1023,10 @@ function startRound() {
   effects    = [];
   roundTimer = 0;
   roundPhase = 'countdown';
+
+  // Reset AI state for fresh round
+  aiReactTimer = 0;
+  aiLastDec    = { moveDir: 0, atk: false, jump: false };
 }
 
 function endRound() {
@@ -1004,6 +1098,7 @@ function gameLoop() {
 
   if (roundPhase === 'fight') {
     updatePlayer(players[0], players[1]);
+    if (gameMode === 'vs-cpu') runAI(players[1], players[0]);
     updatePlayer(players[1], players[0]);
     tickEffects();
 
@@ -1139,16 +1234,34 @@ function selectChar(pi, ci) {
   document.getElementById(pi === 0 ? 'p1-info' : 'p2-info').textContent =
     CHARACTERS[ci].name;
 
-  document.getElementById('start-btn').disabled =
-    (p1Choice === null || p2Choice === null);
+  // vs-cpu only requires P1 to pick
+  document.getElementById('start-btn').disabled = gameMode === 'vs-cpu'
+    ? p1Choice === null
+    : (p1Choice === null || p2Choice === null);
 }
 
 // ─── START GAME ───────────────────────────────────────────────
 function startGame() {
-  if (p1Choice === null || p2Choice === null) return;
+  if (p1Choice === null) return;
+
+  // In vs-cpu mode, use the already-rolled CPU choice (or roll now)
+  if (gameMode === 'vs-cpu' && p2Choice === null) {
+    p2Choice = Math.floor(Math.random() * CHARACTERS.length);
+  }
 
   canvas = document.getElementById('game-canvas');
   ctx    = canvas.getContext('2d');
+
+  // Show / hide P2 controls depending on mode
+  const p2ctrl = document.getElementById('p2-controls');
+  const ctrlWrap = document.querySelector('.controls-container');
+  if (gameMode === 'vs-cpu') {
+    p2ctrl.classList.add('hidden');
+    ctrlWrap.classList.add('cpu-mode');
+  } else {
+    p2ctrl.classList.remove('hidden');
+    ctrlWrap.classList.remove('cpu-mode');
+  }
 
   showScreen('game-screen');
 
@@ -1170,7 +1283,17 @@ function startGame() {
 
     // HUD labels
     document.getElementById('p1-name').textContent = CHARACTERS[p1Choice].sub;
-    document.getElementById('p2-name').textContent = CHARACTERS[p2Choice].sub;
+    const p2HudName = document.getElementById('p2-name');
+    p2HudName.textContent = CHARACTERS[p2Choice].sub;
+    // Show CPU badge in HUD when vs-cpu
+    const existingBadge = p2HudName.parentElement.querySelector('.cpu-badge');
+    if (existingBadge) existingBadge.remove();
+    if (gameMode === 'vs-cpu') {
+      const badge = document.createElement('span');
+      badge.className = 'cpu-badge';
+      badge.textContent = 'CPU';
+      p2HudName.after(badge);
+    }
 
     // Reset scores
     p1Wins = p2Wins = 0;
@@ -1191,6 +1314,71 @@ function startGame() {
   });
 }
 
+// ─── MODE SWITCHING ───────────────────────────────────────────
+function switchMode(mode) {
+  gameMode = mode;
+
+  // Toggle active class on mode buttons
+  document.getElementById('mode-pvp').classList.toggle('active', mode === 'pvp');
+  document.getElementById('mode-cpu').classList.toggle('active', mode === 'vs-cpu');
+
+  // Show/hide difficulty row
+  document.getElementById('diff-row').classList.toggle('visible', mode === 'vs-cpu');
+
+  // Toggle P2 panel sections
+  document.getElementById('p2-pick-area').style.display   = mode === 'pvp' ? '' : 'none';
+  document.getElementById('cpu-pick-area').style.display  = mode === 'vs-cpu' ? '' : 'none';
+
+  // P2 panel label
+  document.getElementById('p2-panel-label').textContent =
+    mode === 'vs-cpu' ? 'CPU' : 'PLAYER 2';
+
+  if (mode === 'vs-cpu') {
+    // Auto-roll a CPU character immediately for visual feedback
+    if (p2Choice === null) rollCpuChar();
+    // P1 can fight solo; re-evaluate button state
+    document.getElementById('start-btn').disabled = (p1Choice === null);
+  } else {
+    // pvp: both players must pick
+    p2Choice = null;
+    document.querySelectorAll('#p2-grid .char-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('p2-info').textContent = 'Pick a fighter';
+    document.getElementById('start-btn').disabled = (p1Choice === null || p2Choice === null);
+  }
+}
+
+// Roll (or re-roll) a random CPU character and update the preview canvas
+function rollCpuChar() {
+  p2Choice = Math.floor(Math.random() * CHARACTERS.length);
+  const ch = CHARACTERS[p2Choice];
+
+  // Update name label
+  document.getElementById('cpu-char-name').textContent = ch.sub;
+
+  // Draw preview on the cpu-preview-canvas
+  const pc   = document.getElementById('cpu-preview-canvas');
+  const pctx = pc.getContext('2d');
+  pctx.clearRect(0, 0, pc.width, pc.height);
+  pctx.save();
+  pctx.translate(40, 86);  // center-bottom of 80×90 canvas
+  const proxy = {
+    char: ch, num: 2,
+    h: 70, w: 50,
+    atkTimer: 0, hurtTimer: 0,
+    state: 'idle', facing: 1,
+    anim: 0, walkCycle: 0,
+    burnTimer: 0, regenTimer: 0
+  };
+  const realCtx = ctx;
+  ctx = pctx;
+  drawCharacter(proxy);
+  ctx = realCtx;
+  pctx.restore();
+
+  // Unlock fight button if P1 has picked
+  document.getElementById('start-btn').disabled = (p1Choice === null);
+}
+
 // ─── INIT ─────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   // The ctx reference starts null; buildCharSelect needs to draw previews
@@ -1204,6 +1392,24 @@ window.addEventListener('load', () => {
   setupTouchControls();
 
   document.getElementById('start-btn').addEventListener('click', startGame);
+
+  // ── Mode buttons (2 Player / vs CPU) ────────────────────────
+  document.getElementById('mode-pvp').addEventListener('click', () => switchMode('pvp'));
+  document.getElementById('mode-cpu').addEventListener('click', () => switchMode('vs-cpu'));
+
+  // ── Difficulty buttons ───────────────────────────────────────
+  document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      aiDifficulty = btn.dataset.diff;
+    });
+  });
+
+  // ── CPU random-pick button ───────────────────────────────────
+  document.getElementById('cpu-random-btn').addEventListener('click', () => {
+    rollCpuChar();
+  });
 
   document.getElementById('rematch-btn').addEventListener('click', () => {
     // Same characters, reset scores
@@ -1228,6 +1434,8 @@ window.addEventListener('load', () => {
     gameState = 'select';
     showScreen('select-screen');
     buildCharSelect();
+    // Re-apply the current mode UI state
+    switchMode(gameMode);
     document.getElementById('start-btn').disabled = true;
   });
 

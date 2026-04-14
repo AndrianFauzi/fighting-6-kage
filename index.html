@@ -11,7 +11,20 @@
   <!-- ========== CHARACTER SELECT SCREEN ========== -->
   <div id="select-screen" class="screen active">
     <h1 class="game-title">6 KAGE</h1>
-    <p class="game-subtitle">Choose Your Fighter</p>
+
+    <!-- Mode selector -->
+    <div class="mode-row">
+      <button class="mode-btn active" id="mode-pvp">&#x1F46B; 2 Player</button>
+      <button class="mode-btn"        id="mode-cpu">&#x1F916; vs CPU</button>
+    </div>
+
+    <!-- Difficulty (only shown in vs CPU mode) -->
+    <div class="diff-row" id="diff-row">
+      <span class="diff-label">Difficulty:</span>
+      <button class="diff-btn" data-diff="easy">Easy</button>
+      <button class="diff-btn active" data-diff="medium">Medium</button>
+      <button class="diff-btn" data-diff="hard">Hard</button>
+    </div>
 
     <div class="select-container">
       <!-- Player 1 -->
@@ -23,11 +36,22 @@
 
       <div class="vs-divider">VS</div>
 
-      <!-- Player 2 -->
+      <!-- Player 2 / CPU -->
       <div class="player-select" id="p2-panel">
-        <div class="player-label p2-label">PLAYER 2</div>
-        <div class="character-grid" id="p2-grid"></div>
-        <div class="selected-info" id="p2-info">Pick a fighter</div>
+        <div class="player-label p2-label" id="p2-panel-label">PLAYER 2</div>
+
+        <!-- PvP: normal character grid -->
+        <div id="p2-pick-area">
+          <div class="character-grid" id="p2-grid"></div>
+          <div class="selected-info" id="p2-info">Pick a fighter</div>
+        </div>
+
+        <!-- vs CPU: auto-pick display -->
+        <div id="cpu-pick-area" class="cpu-pick-area" style="display:none">
+          <canvas id="cpu-preview-canvas" width="80" height="90"></canvas>
+          <div class="cpu-char-name" id="cpu-char-name">— Random —</div>
+          <button class="btn btn-random" id="cpu-random-btn">&#x1F3B2; Random</button>
+        </div>
       </div>
     </div>
 
@@ -76,7 +100,7 @@
       </div>
 
       <!-- P2 controls: attack left, dpad right -->
-      <div class="controls p2-controls">
+      <div class="controls p2-controls" id="p2-controls">
         <button class="ctrl-btn atk-btn" id="p2-atk" data-player="1" data-key="attack">ATK</button>
         <div class="dpad">
           <button class="ctrl-btn" id="p2-left"  data-player="1" data-key="left">&#9664;</button>

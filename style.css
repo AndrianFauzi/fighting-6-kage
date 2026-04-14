@@ -475,6 +475,147 @@ html, body {
   .atk-btn  { width: 58px; height: 58px; font-size: 0.72rem; }
 }
 
+/* ============================================================
+   MODE SELECTOR & DIFFICULTY (Select Screen)
+   ============================================================ */
+
+.mode-row {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.mode-btn {
+  background: rgba(30,30,60,.85);
+  border: 2px solid rgba(120,120,180,.3);
+  border-radius: 20px;
+  color: rgba(255,255,255,.6);
+  font-size: clamp(0.7rem, 2.4vw, 0.85rem);
+  font-weight: bold;
+  padding: 6px 18px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.15s;
+  touch-action: manipulation;
+}
+
+.mode-btn:hover {
+  border-color: rgba(255,215,0,.5);
+  color: #fff;
+}
+
+.mode-btn.active {
+  background: rgba(255,215,0,.15);
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 0 12px rgba(255,215,0,.25);
+}
+
+.diff-row {
+  display: none;              /* hidden by default, shown in vs-cpu mode */
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.diff-row.visible { display: flex; }
+
+.diff-label {
+  font-size: clamp(0.6rem, 2vw, 0.75rem);
+  color: rgba(255,255,255,.5);
+  letter-spacing: 1px;
+}
+
+.diff-btn {
+  background: rgba(25,25,50,.85);
+  border: 1.5px solid rgba(100,100,160,.3);
+  border-radius: 14px;
+  color: rgba(255,255,255,.55);
+  font-size: clamp(0.6rem, 2vw, 0.73rem);
+  font-weight: bold;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+  touch-action: manipulation;
+}
+
+.diff-btn.active {
+  border-color: #00E676;
+  color: #00E676;
+  background: rgba(0,230,118,.1);
+}
+
+.diff-btn:hover { border-color: rgba(255,255,255,.4); color: #fff; }
+
+/* ── CPU auto-pick panel ─────────────────────────── */
+.cpu-pick-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+#cpu-preview-canvas {
+  display: block;
+  background: rgba(20,20,50,.7);
+  border-radius: 8px;
+  border: 1.5px solid rgba(255,215,0,.2);
+}
+
+.cpu-char-name {
+  font-size: clamp(0.6rem, 2vw, 0.75rem);
+  color: var(--gold);
+  font-weight: bold;
+  text-align: center;
+}
+
+.btn-random {
+  background: rgba(40,180,120,.2);
+  border: 1.5px solid rgba(40,220,140,.4);
+  border-radius: 14px;
+  color: #00E676;
+  font-size: clamp(0.6rem, 2vw, 0.72rem);
+  font-weight: bold;
+  padding: 5px 14px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  touch-action: manipulation;
+  transition: all 0.12s;
+}
+.btn-random:hover {
+  background: rgba(40,220,140,.3);
+  border-color: #00E676;
+}
+
+/* ── Hide P2 touch controls in vs-CPU mode ───────── */
+#p2-controls.hidden {
+  display: none;
+}
+
+/* P1 controls center when P2 hidden */
+.controls-container.cpu-mode {
+  justify-content: center;
+}
+
+/* CPU badge in HUD */
+.cpu-badge {
+  font-size: 0.6rem;
+  background: rgba(0,230,118,.2);
+  border: 1px solid rgba(0,230,118,.4);
+  border-radius: 6px;
+  color: #00E676;
+  padding: 1px 5px;
+  letter-spacing: 1px;
+  margin-left: 3px;
+}
+
 /* Landscape phone: compress controls */
 @media (max-height: 440px) and (orientation: landscape) {
   .game-hud    { padding: 3px 8px; }
