@@ -599,9 +599,47 @@ html, body {
   display: none;
 }
 
-/* P1 controls center when P2 hidden */
+/* ── CPU mode: P1 controls span full width ───────────────────
+   Dpad stays on the far left, ATK moves to the far right
+   Buttons grow bigger since there's room                       */
 .controls-container.cpu-mode {
-  justify-content: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+}
+
+.controls-container.cpu-mode .p1-controls {
+  width: 100%;
+  justify-content: space-between;  /* dpad ←————————→ ATK */
+  gap: 0;
+}
+
+/* Bigger dpad buttons in solo mode */
+.controls-container.cpu-mode .dpad {
+  gap: 8px;
+}
+
+.controls-container.cpu-mode .ctrl-btn {
+  width: 58px;
+  height: 58px;
+  font-size: 1.1rem;
+}
+
+.controls-container.cpu-mode .jump-btn {
+  width: 58px;
+  height: 58px;
+}
+
+.controls-container.cpu-mode .atk-btn {
+  width: 68px;
+  height: 68px;
+  font-size: 0.82rem;
+}
+
+/* Compact again on very small screens */
+@media (max-width: 360px) {
+  .controls-container.cpu-mode .ctrl-btn { width: 50px; height: 50px; font-size: 1rem; }
+  .controls-container.cpu-mode .atk-btn  { width: 58px; height: 58px; font-size: 0.72rem; }
+  .controls-container.cpu-mode .dpad     { gap: 5px; }
 }
 
 /* CPU badge in HUD */
