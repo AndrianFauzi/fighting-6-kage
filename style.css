@@ -1,0 +1,487 @@
+/* ============================================================
+   6 KAGE — Fighting Game Styles
+   Mobile-first, responsive
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+:root {
+  --gold:    #FFD700;
+  --red:     #E74C3C;
+  --green:   #2ECC40;
+  --dark:    #08080f;
+  --panel:   rgba(12, 12, 30, 0.96);
+  --border:  rgba(255, 215, 0, 0.35);
+  --p1col:   #3498DB;
+  --p2col:   #E74C3C;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--dark);
+  font-family: Arial, Helvetica, sans-serif;
+  color: #fff;
+}
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+
+.screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+}
+
+.screen.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   SELECT SCREEN
+   ============================================================ */
+
+#select-screen {
+  background: radial-gradient(ellipse at 50% 30%, #1a0f3c 0%, #0a0a18 60%, #000 100%);
+  align-items: center;
+  padding: 10px 10px 6px;
+  overflow-y: auto;
+  gap: 6px;
+}
+
+.game-title {
+  font-size: clamp(1.6rem, 6vw, 2.6rem);
+  color: var(--gold);
+  letter-spacing: 8px;
+  text-shadow: 0 0 24px rgba(255,215,0,.55), 0 2px 0 #000;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.game-subtitle {
+  font-size: clamp(0.6rem, 2.2vw, 0.85rem);
+  color: rgba(255,255,255,.45);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Two-column layout for player selection */
+.select-container {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  max-width: 820px;
+  flex: 1;
+  min-height: 0;
+  align-items: flex-start;
+}
+
+.player-select {
+  flex: 1;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.player-label {
+  font-size: clamp(0.65rem, 2.2vw, 0.8rem);
+  font-weight: bold;
+  letter-spacing: 3px;
+  text-align: center;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.p1-label { color: var(--p1col); }
+.p2-label { color: var(--p2col); }
+
+.character-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+.char-card {
+  background: rgba(25, 25, 55, .85);
+  border: 2px solid rgba(120, 120, 180, .25);
+  border-radius: 8px;
+  padding: 5px 3px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: border-color 0.12s, background 0.12s, transform 0.1s;
+  touch-action: manipulation;
+}
+
+.char-card:hover {
+  border-color: rgba(255,215,0,.5);
+  background: rgba(50,50,100,.9);
+}
+
+.char-card.selected {
+  border-color: var(--gold);
+  background: rgba(255,215,0,.12);
+  box-shadow: 0 0 14px rgba(255,215,0,.35);
+  transform: scale(1.04);
+}
+
+.char-card canvas {
+  display: block;
+  width: 56px;
+  height: 64px;
+}
+
+.char-card-name {
+  font-size: clamp(0.45rem, 1.6vw, 0.6rem);
+  text-align: center;
+  color: #ccc;
+  font-weight: bold;
+  line-height: 1.1;
+}
+
+.selected-info {
+  min-height: 16px;
+  text-align: center;
+  font-size: clamp(0.6rem, 2vw, 0.75rem);
+  color: var(--gold);
+  font-weight: bold;
+}
+
+.vs-divider {
+  writing-mode: vertical-rl;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1rem, 3.5vw, 1.4rem);
+  font-weight: 900;
+  color: var(--red);
+  text-shadow: 0 0 12px rgba(231,76,60,.7);
+  min-width: 26px;
+  padding: 10px 0;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.btn {
+  display: block;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: transform .1s, box-shadow .1s;
+  touch-action: manipulation;
+}
+
+.btn:active { transform: scale(.95); }
+
+.btn-fight {
+  background: linear-gradient(135deg, #c0392b, #e74c3c);
+  color: #fff;
+  font-size: clamp(0.85rem, 3vw, 1.05rem);
+  padding: 11px 36px;
+  box-shadow: 0 4px 18px rgba(231,76,60,.45);
+  flex-shrink: 0;
+  align-self: center;
+  margin-top: 4px;
+}
+
+.btn-fight:disabled {
+  background: linear-gradient(135deg, #444, #2a2a2a);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.btn-fight:not(:disabled):hover {
+  box-shadow: 0 6px 24px rgba(231,76,60,.65);
+  transform: translateY(-2px);
+}
+
+.btn-menu {
+  background: rgba(40,40,60,.9);
+  border: 1px solid rgba(255,255,255,.15);
+  color: #aaa;
+  font-size: clamp(0.7rem, 2.4vw, 0.85rem);
+  padding: 9px 24px;
+  align-self: center;
+}
+
+/* ============================================================
+   GAME SCREEN
+   ============================================================ */
+
+#game-screen {
+  background: #000;
+  flex-direction: column;
+}
+
+/* --- HUD --- */
+.game-hud {
+  display: flex;
+  align-items: center;
+  padding: 5px 8px;
+  background: rgba(0,0,0,.92);
+  border-bottom: 1px solid rgba(255,215,0,.15);
+  gap: 8px;
+  flex-shrink: 0;
+  z-index: 5;
+}
+
+.hud-player {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.hud-p2 { flex-direction: row-reverse; }
+
+.hud-name {
+  font-size: clamp(0.55rem, 1.8vw, 0.72rem);
+  font-weight: bold;
+  color: var(--gold);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.hp-bar-wrap {
+  flex: 1;
+  height: 13px;
+  background: rgba(60,60,60,.8);
+  border-radius: 7px;
+  border: 1px solid rgba(255,255,255,.08);
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* P2 bar shrinks from the right */
+.hp-bar-wrap-r { transform: scaleX(-1); }
+
+.hp-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+  border-radius: 7px;
+  transition: width 0.08s linear, background 0.3s;
+}
+
+.hud-center {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 54px;
+}
+
+.round-label {
+  font-size: clamp(0.5rem, 1.7vw, 0.65rem);
+  color: rgba(255,255,255,.5);
+  white-space: nowrap;
+}
+
+.score-board {
+  font-size: clamp(0.85rem, 3vw, 1.1rem);
+  font-weight: bold;
+  color: #fff;
+  line-height: 1;
+}
+
+.score-sep {
+  color: rgba(255,255,255,.4);
+  margin: 0 3px;
+}
+
+/* --- Canvas fills remaining height --- */
+#game-canvas {
+  display: block;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ============================================================
+   ON-SCREEN CONTROLS
+   ============================================================ */
+
+.controls-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 10px;
+  background: rgba(0,0,0,.88);
+  border-top: 1px solid rgba(255,255,255,.04);
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.dpad {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.ctrl-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.22);
+  background: rgba(35,35,55,.92);
+  color: rgba(255,255,255,.85);
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .08s, border-color .08s, transform .08s;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+}
+
+.ctrl-btn:active,
+.ctrl-btn.pressed {
+  background: rgba(255,215,0,.28);
+  border-color: var(--gold);
+  transform: scale(.9);
+}
+
+.jump-btn {
+  background: rgba(20,70,20,.92);
+  border-color: rgba(80,200,80,.35);
+}
+
+.jump-btn:active,
+.jump-btn.pressed {
+  background: rgba(46,204,64,.35);
+  border-color: var(--green);
+}
+
+.atk-btn {
+  width: 52px;
+  height: 52px;
+  background: rgba(80,15,15,.92);
+  border-color: rgba(231,76,60,.4);
+  color: #ff9999;
+  font-size: 0.65rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.atk-btn:active,
+.atk-btn.pressed {
+  background: rgba(231,76,60,.5);
+  border-color: var(--red);
+  color: #fff;
+}
+
+/* ============================================================
+   END SCREEN
+   ============================================================ */
+
+#end-screen {
+  background: radial-gradient(ellipse at 50% 40%, #1a0f3c 0%, #0a0a18 60%, #000 100%);
+  align-items: center;
+  justify-content: center;
+}
+
+.end-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.trophy {
+  font-size: clamp(2.5rem, 10vw, 4rem);
+  animation: bounce 0.6s ease infinite alternate;
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-10px); }
+}
+
+.winner-announce {
+  font-size: clamp(1.3rem, 5.5vw, 2rem);
+  font-weight: bold;
+  color: var(--gold);
+  text-shadow: 0 0 24px rgba(255,215,0,.6);
+  animation: glow 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from { text-shadow: 0 0 20px rgba(255,215,0,.4); }
+  to   { text-shadow: 0 0 44px rgba(255,215,0,.9), 0 0 70px rgba(255,100,0,.3); }
+}
+
+#winner-canvas {
+  background: rgba(25,25,55,.85);
+  border-radius: 50%;
+  border: 3px solid var(--gold);
+  box-shadow: 0 0 28px rgba(255,215,0,.3);
+  display: block;
+}
+
+.final-score {
+  font-size: clamp(1rem, 3.5vw, 1.25rem);
+  color: rgba(255,255,255,.7);
+  letter-spacing: 4px;
+}
+
+/* ============================================================
+   RESPONSIVE TWEAKS
+   ============================================================ */
+
+@media (max-width: 360px) {
+  .ctrl-btn { width: 38px; height: 38px; font-size: 0.82rem; }
+  .atk-btn  { width: 46px; height: 46px; font-size: 0.58rem; }
+  .dpad     { gap: 2px; }
+}
+
+@media (min-width: 600px) {
+  .ctrl-btn { width: 50px; height: 50px; }
+  .atk-btn  { width: 58px; height: 58px; font-size: 0.72rem; }
+}
+
+/* Landscape phone: compress controls */
+@media (max-height: 440px) and (orientation: landscape) {
+  .game-hud    { padding: 3px 8px; }
+  .hp-bar-wrap { height: 9px; }
+  .ctrl-btn    { width: 36px; height: 36px; font-size: 0.78rem; }
+  .atk-btn     { width: 42px; height: 42px; font-size: 0.58rem; }
+  .controls-container { padding: 4px 10px; }
+  #select-screen { padding: 6px; gap: 4px; }
+  .game-title  { font-size: 1.4rem; }
+}

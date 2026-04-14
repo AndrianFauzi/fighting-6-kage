@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>6 Kage - Fighting Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ========== CHARACTER SELECT SCREEN ========== -->
+  <div id="select-screen" class="screen active">
+    <h1 class="game-title">6 KAGE</h1>
+    <p class="game-subtitle">Choose Your Fighter</p>
+
+    <div class="select-container">
+      <!-- Player 1 -->
+      <div class="player-select" id="p1-panel">
+        <div class="player-label p1-label">PLAYER 1</div>
+        <div class="character-grid" id="p1-grid"></div>
+        <div class="selected-info" id="p1-info">Pick a fighter</div>
+      </div>
+
+      <div class="vs-divider">VS</div>
+
+      <!-- Player 2 -->
+      <div class="player-select" id="p2-panel">
+        <div class="player-label p2-label">PLAYER 2</div>
+        <div class="character-grid" id="p2-grid"></div>
+        <div class="selected-info" id="p2-info">Pick a fighter</div>
+      </div>
+    </div>
+
+    <button id="start-btn" class="btn btn-fight" disabled>FIGHT!</button>
+  </div>
+
+  <!-- ========== GAME SCREEN ========== -->
+  <div id="game-screen" class="screen">
+    <!-- HUD -->
+    <div class="game-hud">
+      <div class="hud-player hud-p1">
+        <span class="hud-name" id="p1-name">P1</span>
+        <div class="hp-bar-wrap">
+          <div class="hp-bar" id="p1-hp"></div>
+        </div>
+      </div>
+      <div class="hud-center">
+        <div class="round-label" id="round-label">Round 1</div>
+        <div class="score-board">
+          <span id="p1-wins">0</span>
+          <span class="score-sep">:</span>
+          <span id="p2-wins">0</span>
+        </div>
+      </div>
+      <div class="hud-player hud-p2">
+        <div class="hp-bar-wrap hp-bar-wrap-r">
+          <div class="hp-bar" id="p2-hp"></div>
+        </div>
+        <span class="hud-name" id="p2-name">P2</span>
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Controls -->
+    <div class="controls-container">
+      <!-- P1 controls: dpad left, attack right -->
+      <div class="controls p1-controls">
+        <div class="dpad">
+          <button class="ctrl-btn" id="p1-left"  data-player="0" data-key="left">&#9664;</button>
+          <button class="ctrl-btn jump-btn" id="p1-jump" data-player="0" data-key="jump">&#9650;</button>
+          <button class="ctrl-btn" id="p1-right" data-player="0" data-key="right">&#9654;</button>
+        </div>
+        <button class="ctrl-btn atk-btn" id="p1-atk" data-player="0" data-key="attack">ATK</button>
+      </div>
+
+      <!-- P2 controls: attack left, dpad right -->
+      <div class="controls p2-controls">
+        <button class="ctrl-btn atk-btn" id="p2-atk" data-player="1" data-key="attack">ATK</button>
+        <div class="dpad">
+          <button class="ctrl-btn" id="p2-left"  data-player="1" data-key="left">&#9664;</button>
+          <button class="ctrl-btn jump-btn" id="p2-jump" data-player="1" data-key="jump">&#9650;</button>
+          <button class="ctrl-btn" id="p2-right" data-player="1" data-key="right">&#9654;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== END SCREEN ========== -->
+  <div id="end-screen" class="screen">
+    <div class="end-content">
+      <div class="trophy">&#127942;</div>
+      <div class="winner-announce" id="winner-announce">Player 1 Wins!</div>
+      <canvas id="winner-canvas" width="120" height="120"></canvas>
+      <div class="final-score" id="final-score">2 - 0</div>
+      <button id="rematch-btn" class="btn btn-fight">Rematch</button>
+      <button id="menu-btn"    class="btn btn-menu">Main Menu</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
